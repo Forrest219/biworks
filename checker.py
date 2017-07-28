@@ -10,38 +10,45 @@ class checker():
 		if type()
 '''
 
-def check_na(dataframe, on_columns=[], how=True):
+def check_na(dataframe, on_columns=[]):
 	'''
-	Check if certain columns is or isn't None. 
-
-	The result is a dictionary, users can use furtuer method to get more information:
-
-	1. check_na[result]：'Correct!' or 'Error!'
-		Correst!: if at least one column meet the checking condition;
-		Error!: if none of the columns meet the checking condition.
 	
-	2. check_na[rows]: the corresponding rows(DataFrame) that meet the checking condition;
-	3. check_na[columns]: the columns names(list) that meet the checking condition.
+	Function
+	----------
+	Check if columns in on_columns contain None. 
+
+	Output
+	----------
+	The output is a dictionary, users can use 'key' to get specific information:
+
+	1. check_na['result']: True or False
+		True: if at least one column contain None.
+		False: if none of the columns contain None.
+	2. check_na['rows']: dataframe
+		The corresponding rows that at least one column in on_columns is None.
+	3. check_na['columns']:  list
+		The columns names that contain None.
 
 	Parameters
 	----------
 	dataframe: Dataframe
 	on_columns: list
-		Column names that going be checked 
-	how: True or False, default True
-		True: if certain columns is None
-		False: if certain columns isn't None
+		Column names that being checked. ALl of them should be in dataframe.
+
+	Example
+	----------
+
 
 	'''
 	if Set(dataframe.columns).issuperset(Set(on_columns)):
+		
 		result = []
 		na_index = []
 		na_columns = []
-
+	
 		df = dataframe.reset_index()[on_columns].isnull()
-		for col in on_columns:
-			# select dataframe that meet the checking condition
-			temp = df[col][df[col]==how]
+		for col in on_columns:	
+			temp = df[col][df[col]==True]	# select a series that is null
 			if temp.size>0:
 				na_columns.append(col)
 				na_index.extend(temp.index.tolist())
@@ -49,9 +56,9 @@ def check_na(dataframe, on_columns=[], how=True):
 				continue
 		
 		if len(na_columns)==0:
-			result = 'Correct!'
+			result = False	# none of columns contain None
 		else:
-			result = 'Error!'
+			result = True	# at least one column contain None
 
 		index = list(Set(na_index))
 		return {'result':result, 'columns':na_columns,'rows':dataframe.iloc[index]}
@@ -59,40 +66,46 @@ def check_na(dataframe, on_columns=[], how=True):
 		return {'result':'The parameter \'on_columns\' contains the column names that not in dataframe!',
 		 'columns':'', 'rows':''}
 
-def check_zero(dataframe, on_columns=[], how=True):
+def check_zero(dataframe, on_columns=[]):
 	'''
-	Check if certain columns contain or not contain zero. 
+	Function
+	----------
+	Check if columns in on_columns contain 0/zero. 
 
-	The result is a dictionary, users can use furtuer method to get more information:
+	Output
+	----------
+	The output is a dictionary, users can use 'key' to get specific information:
 
-	1. check_zero[result]：'Correct!' or 'Error!'
-		Correst!: if at least one column meet the checking condition;
-		Error!: if none of the columns meet the checking condition.
-	
-	2. check_na[rows]: the corresponding rows(DataFrame) that meet the checking condition;
-	3. check_na[columns]: the columns names(list) that meet the checking condition.
+	1. check_na['result']: True or False
+		True: if at least one column contain 0/zero.
+		False: if none of the columns contain 0/zero.
+	2. check_na['rows']: dataframe
+		The corresponding rows that at least one column in on_columns is 0/zero.
+	3. check_na['columns']:  list
+		The columns names that contain 0/zero.
 
 	Parameters
 	----------
 	dataframe: Dataframe
 	on_columns: list
 		Column names that going be checked 
-	how: True or False, default True
-		True: if certain columns is zero
-		False: if certain columns isn't zero
+
+	Example
+	----------
 
 	'''
 
 	if Set(dataframe.columns).issuperset(Set(on_columns)):
 		df = dataframe.reset_index()[on_columns]
-		df = df==0
+		
+		df = df==0	# check 0/zero
+		
 		result = []
 		zero_index = []
 		zero_columns = []
 
 		for col in on_columns:
-			# select dataframe that meet the checking condition
-			temp = df[col][df[col]==how]
+			temp = df[col][df[col]==True]	# select a series that is 0/zero
 			if temp.size>0:
 				zero_columns.append(col)
 				zero_index.extend(temp.index.tolist())
@@ -100,9 +113,9 @@ def check_zero(dataframe, on_columns=[], how=True):
 				continue
 
 		if len(zero_columns)==0:
-			result = 'Correct!'
+			result = False	# none of columns contain 0/zero
 		else:
-			result = 'Error!'
+			result = True	# at least one column contain 0/zero
 
 		index = list(Set(zero_index))
 		return {'result':result, 'columns':zero_columns, 'rows':dataframe.iloc[index]}
@@ -110,14 +123,52 @@ def check_zero(dataframe, on_columns=[], how=True):
 		return {'result':'The parameter \'on_columns\' contains the column names that not in dataframe!',
 		 'columns':'', 'rows':''}
 
-def check_key(dataframe, key_columns=[], value_columns=[]):
+def check_pairs(dataframe, key_columns=[], value_columns=[], keep='first'):
+	'''
+	Function
+	----------
+	Check if exist duplicated keys within key-vlaue pairs.
 
-	duplicate_key = []
-	df = dataframe.drop_duplicates(keep='first')[key_column+value_columns]
-	df_result = df[df.duplicated(key_column,keep=False)]
+	Output
+	----------
+	The output is a dictionary, users can use 'key' to get specific information:
 
-	return df_result
+	1. check_na['result']: True or False
+		True: exist duplicated keys within key-vlaue pairs.
+		False: don't exist duplicated keys within key-vlaue pairs.
+	2. check_na['rows']: dataframe
+		The corresponding rows that have duplicated keys.
+	3. check_na['parirs']:  dataframe
+		The duplicated key-vlaue pairs.
 
+	Parameters
+	----------
+	dataframe: Dataframe
+	key_columns: list
+		Column names that will combine to be the key.
+	value_columns: list
+	    Column names that will combine to be the value.
+	keep: first or last, default 'first'
+	     first: delete duplicates rows except for the first occurrence.
+	     last: delete duplicates rows except for the last occurrence.
+
+	Example
+	----------
+
+	'''
+
+	df = dataframe.drop_duplicates(key_columns+value_columns,keep=keep)
+	df_result = df[df.duplicated(key_columns,keep=False)].sort_values(key_columns)
+
+	result = []
+	duplicate_pairs = df_result[key_columns+value_columns].reset_index(drop=True)
+
+	if df_result.shape[0] == 0:
+		result = True
+	else:
+		result = False
+
+	return {'result':result,'rows':df_result,'pairs':duplicate_pairs}
 
 def check_outlier(dataframe, on_columns=[], outlier='', how='==', dropna=True):
 
@@ -150,4 +201,11 @@ def check_outlier(dataframe, on_columns=[], outlier='', how='==', dropna=True):
 			continue
 '''
 
+def str_to_list(series, split_by='', strip=True):
+	s = series.apply(lambda x: x.encode('utf-8').split(split_by)).tolist()
 
+	if strip:
+		s1 = [[i.strip() for i in item] for item in s]
+
+	retult = pd.Series(s1, index=series.index)
+	return retult
