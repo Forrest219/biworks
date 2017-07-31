@@ -2,6 +2,7 @@
 
 import pandas as pd
 from sets import Set
+from py2oracle import compare_data
 
 '''
 class checker():
@@ -61,7 +62,7 @@ def check_na(dataframe, on_columns=[]):
 			result = True	# at least one column contain None
 
 		index = list(Set(na_index))
-		return {'result':result, 'columns':na_columns,'rows':dataframe.iloc[index]}
+		return {'result':result, 'columns':na_columns, 'rows':dataframe.iloc[index]}
 	else:
 		return {'result':'The parameter \'on_columns\' contains the column names that not in dataframe!',
 		 'columns':'', 'rows':''}
@@ -209,3 +210,42 @@ def str_to_list(series, split_by='', strip=True):
 
 	retult = pd.Series(s1, index=series.index)
 	return retult
+
+def check_total(dataframe_1, dataframe_2, sum_cols=[]
+				,sum_cols_left=[], sum_cols_right=[], decimal=2):
+	
+	df_1_total = []
+	df_2_total = []
+	columns = []
+	result = ''
+
+	if len(sum_cols)>0:
+		sum_cols_left=sum_cols_right=sum_cols
+
+	if len(sum_cols_left)==len(sum_cols_right):
+		for i in xrange(len(sum_cols_left)):
+			temp_1 = dataframe_1[sum_cols_left[i]].sum()
+			temp_2 = dataframe_2[sum_cols_right[i]].sum()
+			df_1_total.append(round(temp_1, decimal))
+			df_2_total.append(round(temp_2, decimal))
+
+	for i in xrange(len(sum_cols_left)):
+		if df_1_total[i]!=df_2_total[i]:
+			columns.append((sum_cols_left[i], sum_cols_right[i]))
+
+	if len(columns)==0:
+		result = 'Correct!'
+	else:
+		result = 'Error!'
+
+	return {'result':result, 'columns':columns}
+
+
+
+
+
+
+
+
+
+
